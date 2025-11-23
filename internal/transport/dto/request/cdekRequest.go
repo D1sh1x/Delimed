@@ -42,21 +42,23 @@ type CDEKService struct {
 	Parameter string `json:"parameter,omitempty"` // значение параметра (зависит от услуги)
 }
 
+// CDEKRequest Структура запроса для расчета конкретного тарифа СДЭК
 type CDEKRequest struct {
-	TariffCode int    `json:"tariff_code"`
-	Weight     int    `json:"weight"` // граммы
-	Length     int    `json:"length"` // см
-	Width      int    `json:"width"`  // см
-	Height     int    `json:"height"` // см
-	From       string `json:"from_address"`
-	To         string `json:"to_address"`
+	TariffCode int    `json:"tariff_code" example:"139" binding:"required"` // Код тарифа СДЭК
+	Weight     int    `json:"weight" example:"2500" binding:"required"`     // Вес в граммах
+	Length     int    `json:"length" example:"30" binding:"required"`      // Длина в см
+	Width      int    `json:"width" example:"20" binding:"required"`       // Ширина в см
+	Height     int    `json:"height" example:"15" binding:"required"`     // Высота в см
+	From       string `json:"from_address" example:"Москва" binding:"required"` // Адрес отправления
+	To         string `json:"to_address" example:"Санкт-Петербург" binding:"required"` // Адрес доставки
 }
 
+// CDEKRequestList Структура запроса для получения списка тарифов СДЭК
 type CDEKRequestList struct {
-	Weight int    `json:"weight"` // граммы
-	Length int    `json:"length"` // см
-	Width  int    `json:"width"`  // см
-	Height int    `json:"height"` // см
-	From   string `json:"from_address"`
-	To     string `json:"to_address"`
+	Weight int    `json:"weight" example:"2500" binding:"required"`     // Вес в граммах
+	Length int    `json:"length" example:"30" binding:"required"`       // Длина в см
+	Width  int    `json:"width" example:"20" binding:"required"`        // Ширина в см
+	Height int    `json:"height" example:"15" binding:"required"`       // Высота в см
+	From   string `json:"from_address" example:"Москва" binding:"required"` // Адрес отправления
+	To     string `json:"to_address" example:"Санкт-Петербург" binding:"required"` // Адрес доставки
 }

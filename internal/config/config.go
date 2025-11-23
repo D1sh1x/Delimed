@@ -16,6 +16,7 @@ type Config struct {
 	HTTPServer HTTPServer `yaml:"http_server"`
 	Database   Database   `yaml:"database"`
 	CDEK       CDEK       `yaml:"cdek"`
+	Dellin     Dellin     `yaml:"dellin"`
 }
 
 type HTTPServer struct {
@@ -40,8 +41,14 @@ type Database struct {
 }
 
 type CDEK struct {
-	Login    string `yaml:"login"`
-	Password string `yaml:"password"`
+	ClientID     string `yaml:"client_id"`
+	ClientSecret string `yaml:"client_secret"`
+	Login        string `yaml:"login"`
+	Password     string `yaml:"password"`
+}
+
+type Dellin struct {
+	AppKey string `yaml:"app_key"`
 }
 
 var configPath string = "./config/config.yaml"
@@ -85,8 +92,13 @@ func MustLoadConfig() *Config {
 			ConnMaxIdleTime: v.GetDuration("database.conn_max_idle_time"),
 		},
 		CDEK: CDEK{
-			Login:    v.GetString("cdek.login"),
-			Password: v.GetString("cdek.password"),
+			ClientID:     v.GetString("cdek.client_id"),
+			ClientSecret: v.GetString("cdek.client_secret"),
+			Login:        v.GetString("cdek.login"),
+			Password:     v.GetString("cdek.password"),
+		},
+		Dellin: Dellin{
+			AppKey: v.GetString("dellin.app_key"),
 		},
 	}
 

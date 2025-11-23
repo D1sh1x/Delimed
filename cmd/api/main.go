@@ -14,6 +14,9 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	// Раскомментировать после генерации swagger документации:
+	_ "delimed/docs" // swagger docs
 )
 
 func main() {
@@ -36,7 +39,14 @@ func main() {
 
 	logger.Info("database connect success")
 
-	service := service.NewService(db, config.JWTSecret, logger)
+	service := service.NewService(
+		db,
+		config.JWTSecret,
+		logger,
+		config.CDEK.ClientID,
+		config.CDEK.ClientSecret,
+		config.Dellin.AppKey,
+	)
 
 	logger.Info("service init success")
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func NewServer(jwtSecret []byte, h *handler.Handler, addr string, writeTimeout, readTimeout, idleTimeout time.Duration) *http.Server {
@@ -24,8 +25,12 @@ func NewServer(jwtSecret []byte, h *handler.Handler, addr string, writeTimeout, 
 		AllowCredentials: true,
 	}))
 
+	// Swagger UI
+	router.GET("/swagger/*", echoSwagger.WrapHandler)
+
 	router.GET("/tariffslist", h.GetTariffsList)
 	router.GET("/tariffs", h.GetTariffs)
+	router.POST("/delivery/calculate", h.CalculateDeliveryOptions)
 	router.POST("/register", h.RegisterUserHandler)
 	router.POST("/login", h.LoginUserHandler)
 

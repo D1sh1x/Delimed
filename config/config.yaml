@@ -18,5 +18,9 @@ database:
   conn_max_lifetime: "1h"
   conn_max_idle_time: "30m"
 cdek:
+  client_id: wqGwiQx0gg8mLtiEKsUinjVSICCjtTEP
+  client_secret: RmAmgvSgSl1yirlz9QupbzOJVqhCxcP5
   login: wqGwiQx0gg8mLtiEKsUinjVSICCjtTEP
   password: RmAmgvSgSl1yirlz9QupbzOJVqhCxcP5
+dellin:
+  app_key: "1E211F21-EE54-4EE4-B33E-F889DC83383F" # TODO: добавить app_key для API Деловых Линий
