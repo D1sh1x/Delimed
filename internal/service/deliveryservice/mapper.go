@@ -19,6 +19,9 @@ func MapCDEKTarifflistToOptions(resp response.CDEKTariffListResponse) []domain.D
 		// delivery_mode: 1 - склад-склад, 2 - склад-дверь, 3 - дверь-склад, 4 - дверь-дверь
 		deliveryType := determineCDEKDeliveryType(tariff.DeliveryMode, tariff.TariffName)
 
+		// Определяем from_type и to_type на основе delivery_mode
+		fromType, toType := getCDEKFromToTypes(tariff.DeliveryMode)
+
 		// Преобразуем цену из рублей в копейки
 		price := int64(tariff.DeliverySum * 100)
 
@@ -40,6 +43,9 @@ func MapCDEKTarifflistToOptions(resp response.CDEKTariffListResponse) []domain.D
 			TariffCode:   strconv.Itoa(tariff.TariffCode),
 			Name:         tariff.TariffName,
 			DeliveryType: deliveryType,
+			FromType:     fromType,
+			ToType:       toType,
+			DeliveryMode: tariff.DeliveryMode,
 			Price:        price,
 			Currency:     "RUB",
 			ETAFrom:      etaFrom,
@@ -76,8 +82,27 @@ func determineCDEKDeliveryType(deliveryMode int, tariffName string) domain.Deliv
 	return domain.DeliveryTypeDoor
 }
 
+// getCDEKFromToTypes - определяет from_type и to_type на основе delivery_mode СДЭК
+// delivery_mode: 1 - склад-склад, 2 - склад-дверь, 3 - дверь-склад, 4 - дверь-дверь
+func getCDEKFromToTypes(deliveryMode int) (fromType, toType string) {
+	switch deliveryMode {
+	case 1:
+		return "склад", "склад" // склад-склад
+	case 2:
+		return "склад", "дверь" // склад-дверь
+	case 3:
+		return "дверь", "склад" // дверь-склад
+	case 4:
+		return "дверь", "дверь" // дверь-дверь
+	default:
+		// По умолчанию
+		return "склад", "дверь"
+	}
+}
+
 // MapDellinCalcToOptions - преобразует ответ Деловых Линий в единый формат DeliveryOption
-func MapDellinCalcToOptions(resp response.DellinCalculatorResponse) []domain.DeliveryOption {
+// to используется для определения to_type, from всегда "склад"
+func MapDellinCalcToOptions(resp response.DellinCalculatorResponse, to string) []domain.DeliveryOption {
 	options := make([]domain.DeliveryOption, 0)
 
 	// Проверяем статус ответа
@@ -96,11 +121,16 @@ func MapDellinCalcToOptions(resp response.DellinCalculatorResponse) []domain.Del
 			// Название тарифа
 			tariffName := getDellinTariffName(deliveryTypeStr)
 
+			// Для Деловых Линий from всегда "склад", to берем из параметра
+			fromType, toType := "склад", to
+
 			option := domain.DeliveryOption{
 				Provider:     "dellin",
 				TariffCode:   deliveryTypeStr,
 				Name:         tariffName,
 				DeliveryType: deliveryType,
+				FromType:     fromType,
+				ToType:       toType,
 				Price:        int64(math.Round(price * 100)), // рубли в копейки
 				Currency:     "RUB",
 			}
@@ -126,11 +156,16 @@ func MapDellinCalcToOptions(resp response.DellinCalculatorResponse) []domain.Del
 			tariffCode = "auto"
 		}
 
+		// Для Деловых Линий from всегда "склад", to берем из параметра
+		fromType, toType := "склад", to
+
 		option := domain.DeliveryOption{
 			Provider:     "dellin",
 			TariffCode:   tariffCode,
 			Name:         fmt.Sprintf("Деловые линии (%s)", tariffCode),
 			DeliveryType: deliveryType,
+			FromType:     fromType,
+			ToType:       toType,
 			Price:        int64(math.Round(resp.Data.Price * 100)), // рубли в копейки
 			Currency:     "RUB",
 		}
@@ -189,12 +224,50 @@ func parseDellinDate(dateStr *string) *time.Time {
 	return nil
 }
 
-// FilterOptionsByDeliveryType - фильтрует варианты доставки по типу
+// FilterOptionsByDeliveryType - фильтрует варианты доставки по типу (deprecated, используйте FilterOptionsByFromTo)
 func FilterOptionsByDeliveryType(all []domain.DeliveryOption, requestedType domain.DeliveryType) domain.FilterResult {
 	filtered := make([]domain.DeliveryOption, 0)
 
 	for _, option := range all {
 		if option.DeliveryType == requestedType {
+			filtered = append(filtered, option)
+		}
+	}
+
+	if len(filtered) > 0 {
+		return domain.FilterResult{
+			Status:  "ok",
+			Options: filtered,
+		}
+	}
+
+	// Если нет подходящих вариантов, возвращаем все как fallback
+	return domain.FilterResult{
+		Status:  "error",
+		Options: all,
+	}
+}
+
+// FilterOptionsByFromTo - фильтрует варианты доставки по from/to и исключает тарифы с "постомат"
+func FilterOptionsByFromTo(all []domain.DeliveryOption, from, to string) domain.FilterResult {
+	filtered := make([]domain.DeliveryOption, 0)
+
+	// Нормализуем значения from и to
+	from = strings.ToLower(strings.TrimSpace(from))
+	to = strings.ToLower(strings.TrimSpace(to))
+
+	for _, option := range all {
+		// Исключаем тарифы с "постомат" в названии (case-insensitive)
+		nameLower := strings.ToLower(option.Name)
+		if strings.Contains(nameLower, "постомат") {
+			continue
+		}
+
+		// Фильтруем по from и to
+		optionFrom := strings.ToLower(strings.TrimSpace(option.FromType))
+		optionTo := strings.ToLower(strings.TrimSpace(option.ToType))
+
+		if optionFrom == from && optionTo == to {
 			filtered = append(filtered, option)
 		}
 	}

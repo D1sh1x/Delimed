@@ -403,8 +403,13 @@ const docTemplate = `{
                     "type": "string",
                     "example": "RUB"
                 },
+                "delivery_mode": {
+                    "description": "delivery_mode СДЭК: 1-склад-склад, 2-склад-дверь, 3-дверь-склад, 4-дверь-дверь",
+                    "type": "integer",
+                    "example": 2
+                },
                 "delivery_type": {
-                    "description": "pickup / door",
+                    "description": "pickup / door (deprecated)",
                     "allOf": [
                         {
                             "$ref": "#/definitions/domain.DeliveryType"
@@ -421,6 +426,11 @@ const docTemplate = `{
                     "description": "дата \"до\"",
                     "type": "string",
                     "example": "2024-01-22T00:00:00Z"
+                },
+                "from_type": {
+                    "description": "\"склад\" или \"дверь\" - откуда",
+                    "type": "string",
+                    "example": "склад"
                 },
                 "name": {
                     "description": "человекочитаемое имя тарифа",
@@ -441,6 +451,11 @@ const docTemplate = `{
                     "description": "код тарифа провайдера",
                     "type": "string",
                     "example": "139"
+                },
+                "to_type": {
+                    "description": "\"склад\" или \"дверь\" - куда",
+                    "type": "string",
+                    "example": "дверь"
                 }
             }
         },
@@ -573,17 +588,18 @@ const docTemplate = `{
             "description": "Единый запрос для расчета вариантов доставки от всех провайдеров",
             "type": "object",
             "required": [
-                "delivery_type",
+                "from",
                 "from_address",
                 "height_cm",
                 "length_cm",
+                "to",
                 "to_address",
                 "weight_kg",
                 "width_cm"
             ],
             "properties": {
                 "delivery_type": {
-                    "description": "Тип доставки: самовывоз / дверь\npickup — самовывоз из ПВЗ/терминала\ndoor   — доставка до двери",
+                    "description": "Тип доставки: самовывоз / дверь (deprecated, используйте from/to)\npickup — самовывоз из ПВЗ/терминала\ndoor   — доставка до двери",
                     "type": "string",
                     "example": "door"
                 },
@@ -594,6 +610,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/request.ExtraServices"
                         }
                     ]
+                },
+                "from": {
+                    "description": "Откуда доставляем: \"склад\" или \"дверь\"",
+                    "type": "string",
+                    "example": "склад"
                 },
                 "from_address": {
                     "description": "Адреса",
@@ -619,6 +640,11 @@ const docTemplate = `{
                     "description": "Тариф по скорости (сейчас нужна только фильтрация по типу доставки,\nно speed лучше сразу оставить в модели на будущее)",
                     "type": "string",
                     "example": "economy"
+                },
+                "to": {
+                    "description": "Куда доставляем: \"склад\" или \"дверь\"",
+                    "type": "string",
+                    "example": "дверь"
                 },
                 "to_address": {
                     "description": "Адрес доставки",
@@ -928,6 +954,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {

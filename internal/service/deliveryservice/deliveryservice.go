@@ -13,6 +13,8 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -69,14 +71,35 @@ func (s *DeliveryService) CalculateDeliveryOptions(ctx context.Context, req requ
 		allOptions = append(allOptions, dellinOptions...)
 	}
 
-	// 3. Фильтруем по типу доставки
-	requestedType := domain.DeliveryType(req.DeliveryType)
-	if requestedType != domain.DeliveryTypePickup && requestedType != domain.DeliveryTypeDoor {
-		// Если тип не указан или неверный, используем door по умолчанию
-		requestedType = domain.DeliveryTypeDoor
+	// 3. Фильтруем по to (from всегда "склад" по умолчанию)
+	// Нормализуем значение to
+	from := "склад" // Всегда склад по умолчанию
+	to := strings.ToLower(strings.TrimSpace(req.To))
+
+	// Если to не указан, пытаемся использовать delivery_type для обратной совместимости
+	if to == "" {
+		requestedType := domain.DeliveryType(req.DeliveryType)
+		if requestedType == domain.DeliveryTypePickup {
+			to = "склад"
+		} else {
+			// По умолчанию door = дверь
+			to = "дверь"
+		}
+		log.Info("using delivery_type fallback", slog.String("to", to))
 	}
 
-	result := FilterOptionsByDeliveryType(allOptions, requestedType)
+	// Проверяем валидность значения to
+	if to != "склад" && to != "дверь" {
+		log.Warn("invalid 'to' value, using default 'дверь'", slog.String("to", req.To))
+		to = "дверь"
+	}
+
+	result := FilterOptionsByFromTo(allOptions, from, to)
+
+	// Сортируем варианты по цене (по возрастанию) независимо от провайдера
+	sort.Slice(result.Options, func(i, j int) bool {
+		return result.Options[i].Price < result.Options[j].Price
+	})
 
 	log.Info("delivery options calculated",
 		slog.Int("total_options", len(allOptions)),
@@ -256,8 +279,8 @@ func (s *DeliveryService) getDellinOptions(ctx context.Context, req request.Deli
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 
-	// Преобразуем в единый формат
-	options := MapDellinCalcToOptions(dellinResp)
+	// Преобразуем в единый формат, передаем to из запроса (from всегда "склад")
+	options := MapDellinCalcToOptions(dellinResp, req.To)
 
 	return options, nil
 }

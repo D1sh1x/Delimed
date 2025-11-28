@@ -23,9 +23,11 @@ func BuildDellinCalcRequest(appKey string, in request.DeliveryCalcRequest) reque
 	}
 
 	// 3. Определяем вариант доставки (address/terminal)
-	variant := "terminal"
-	if in.DeliveryType == "door" {
-		variant = "address"
+	// from всегда "склад" (terminal), to может быть "склад" (terminal) или "дверь" (address)
+	fromVariant := "terminal" // Всегда склад (terminal)
+	toVariant := "terminal"
+	if in.To == "дверь" {
+		toVariant = "address"
 	}
 
 	// 4. Формируем ProduceDate
@@ -37,10 +39,10 @@ func BuildDellinCalcRequest(appKey string, in request.DeliveryCalcRequest) reque
 	// 5. Формируем derival
 	derival := request.DellinDerival{
 		ProduceDate: produceDate,
-		Variant:     variant,
+		Variant:     fromVariant,
 	}
 
-	if variant == "address" {
+	if fromVariant == "address" {
 		derival.Address = &request.DellinAddressBlock{
 			Search: in.FromAddress,
 		}
@@ -52,10 +54,10 @@ func BuildDellinCalcRequest(appKey string, in request.DeliveryCalcRequest) reque
 
 	// 6. Формируем arrival
 	arrival := request.DellinArrival{
-		Variant: variant,
+		Variant: toVariant,
 	}
 
-	if variant == "address" {
+	if toVariant == "address" {
 		arrival.Address = &request.DellinAddressBlock{
 			Search: in.ToAddress,
 		}

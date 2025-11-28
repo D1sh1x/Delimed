@@ -6,10 +6,15 @@ definitions:
         description: '"RUB"'
         example: RUB
         type: string
+      delivery_mode:
+        description: 'delivery_mode СДЭК: 1-склад-склад, 2-склад-дверь, 3-дверь-склад,
+          4-дверь-дверь'
+        example: 2
+        type: integer
       delivery_type:
         allOf:
         - $ref: '#/definitions/domain.DeliveryType'
-        description: pickup / door
+        description: pickup / door (deprecated)
         example: door
       eta_from:
         description: дата "от"
@@ -18,6 +23,10 @@ definitions:
       eta_to:
         description: дата "до"
         example: "2024-01-22T00:00:00Z"
+        type: string
+      from_type:
+        description: '"склад" или "дверь" - откуда'
+        example: склад
         type: string
       name:
         description: человекочитаемое имя тарифа
@@ -34,6 +43,10 @@ definitions:
       tariff_code:
         description: код тарифа провайдера
         example: "139"
+        type: string
+      to_type:
+        description: '"склад" или "дверь" - куда'
+        example: дверь
         type: string
     type: object
   domain.DeliveryType:
@@ -138,7 +151,7 @@ definitions:
     properties:
       delivery_type:
         description: |-
-          Тип доставки: самовывоз / дверь
+          Тип доставки: самовывоз / дверь (deprecated, используйте from/to)
           pickup — самовывоз из ПВЗ/терминала
           door   — доставка до двери
         example: door
@@ -147,6 +160,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/request.ExtraServices'
         description: Доп услуги
+      from:
+        description: 'Откуда доставляем: "склад" или "дверь"'
+        example: склад
+        type: string
       from_address:
         description: Адреса
         example: Москва, ул. Ленина, д. 1
@@ -170,6 +187,10 @@ definitions:
           но speed лучше сразу оставить в модели на будущее)
         example: economy
         type: string
+      to:
+        description: 'Куда доставляем: "склад" или "дверь"'
+        example: дверь
+        type: string
       to_address:
         description: Адрес доставки
         example: Санкт-Петербург, Невский пр., д. 1
@@ -183,10 +204,11 @@ definitions:
         example: 20
         type: integer
     required:
-    - delivery_type
+    - from
     - from_address
     - height_cm
     - length_cm
+    - to
     - to_address
     - weight_kg
     - width_cm

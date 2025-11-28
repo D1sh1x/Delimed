@@ -11,10 +11,13 @@ type DeliveryCalcRequest struct {
 	// Вес
 	WeightKg float64 `json:"weight_kg" example:"2.5" binding:"required"` // Вес в кг
 
-	// Тип доставки: самовывоз / дверь
+	// Тип доставки: самовывоз / дверь (deprecated, используйте to)
 	// pickup — самовывоз из ПВЗ/терминала
 	// door   — доставка до двери
-	DeliveryType string `json:"delivery_type" example:"door" binding:"required"` // "pickup" или "door"
+	DeliveryType string `json:"delivery_type,omitempty" example:"door"` // "pickup" или "door" (deprecated)
+
+	// Куда доставляем: "склад" или "дверь" (откуда всегда "склад" по умолчанию)
+	To string `json:"to" example:"дверь" binding:"required"` // "склад" или "дверь"
 
 	// Тариф по скорости (сейчас нужна только фильтрация по типу доставки,
 	// но speed лучше сразу оставить в модели на будущее)
