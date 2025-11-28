@@ -588,7 +588,6 @@ const docTemplate = `{
             "description": "Единый запрос для расчета вариантов доставки от всех провайдеров",
             "type": "object",
             "required": [
-                "from",
                 "from_address",
                 "height_cm",
                 "length_cm",
@@ -599,7 +598,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "delivery_type": {
-                    "description": "Тип доставки: самовывоз / дверь (deprecated, используйте from/to)\npickup — самовывоз из ПВЗ/терминала\ndoor   — доставка до двери",
+                    "description": "Тип доставки: самовывоз / дверь (deprecated, используйте to)\npickup — самовывоз из ПВЗ/терминала\ndoor   — доставка до двери",
                     "type": "string",
                     "example": "door"
                 },
@@ -610,11 +609,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/request.ExtraServices"
                         }
                     ]
-                },
-                "from": {
-                    "description": "Откуда доставляем: \"склад\" или \"дверь\"",
-                    "type": "string",
-                    "example": "склад"
                 },
                 "from_address": {
                     "description": "Адреса",
@@ -642,7 +636,7 @@ const docTemplate = `{
                     "example": "economy"
                 },
                 "to": {
-                    "description": "Куда доставляем: \"склад\" или \"дверь\"",
+                    "description": "Куда доставляем: \"склад\" или \"дверь\" (откуда всегда \"склад\" по умолчанию)",
                     "type": "string",
                     "example": "дверь"
                 },
