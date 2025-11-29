@@ -661,6 +661,16 @@ const docTemplate = `{
             "description": "Дополнительные услуги для расчета доставки",
             "type": "object",
             "properties": {
+                "floor": {
+                    "description": "этаж доставки (если не указан, используется 1)",
+                    "type": "integer",
+                    "example": 5
+                },
+                "has_elevator": {
+                    "description": "наличие лифта (для будущего использования)",
+                    "type": "boolean",
+                    "example": false
+                },
                 "insurance_value": {
                     "description": "объявленная стоимость, 0 если не нужно",
                     "type": "integer",
@@ -683,6 +693,11 @@ const docTemplate = `{
                 },
                 "need_storage": {
                     "description": "хранение",
+                    "type": "boolean",
+                    "example": false
+                },
+                "need_unloading": {
+                    "description": "разгрузочные работы / подъём на этаж",
                     "type": "boolean",
                     "example": false
                 }

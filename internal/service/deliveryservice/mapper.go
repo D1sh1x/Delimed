@@ -285,3 +285,60 @@ func FilterOptionsByFromTo(all []domain.DeliveryOption, from, to string) domain.
 		Options: all,
 	}
 }
+
+// FilterCDEKBySpeed - фильтрует тарифы СДЭК по скорости доставки
+// Применяется только к тарифам СДЭК, тарифы Деловых Линий остаются без изменений
+func FilterCDEKBySpeed(options []domain.DeliveryOption, speed string) []domain.DeliveryOption {
+	// Если speed не указан, возвращаем все варианты
+	if speed == "" {
+		return options
+	}
+
+	speed = strings.ToLower(strings.TrimSpace(speed))
+	filtered := make([]domain.DeliveryOption, 0)
+
+	// Определяем разрешенные тарифы в зависимости от speed
+	var allowedTariffs map[string]bool
+
+	switch speed {
+	case "economy":
+		// Экономичная доставка: 62, 121, 122, 123, 748, 749, 750, 751
+		allowedTariffs = map[string]bool{
+			"62":  true,
+			"121": true,
+			"122": true,
+			"123": true,
+			"748": true,
+			"749": true,
+			"750": true,
+			"751": true,
+		}
+	case "express":
+		// Экспресс доставка: 480, 481, 482, 483
+		allowedTariffs = map[string]bool{
+			"480": true,
+			"481": true,
+			"482": true,
+			"483": true,
+		}
+	default:
+		// Если speed не economy и не express, возвращаем все варианты
+		return options
+	}
+
+	// Фильтруем варианты
+	for _, option := range options {
+		// Для тарифов СДЭК применяем фильтрацию по speed
+		if option.Provider == "cdek" {
+			// Проверяем, есть ли тариф в списке разрешенных
+			if allowedTariffs[option.TariffCode] {
+				filtered = append(filtered, option)
+			}
+		} else {
+			// Для других провайдеров (Деловые Линии) оставляем без изменений
+			filtered = append(filtered, option)
+		}
+	}
+
+	return filtered
+}

@@ -42,4 +42,7 @@ type ExtraServices struct {
 	NeedCourier    bool  `json:"need_courier" example:"false"`   // курьеры/адресная доставка/грузчики
 	NeedDocuments  bool  `json:"need_documents" example:"false"` // работа с документами
 	NeedStorage    bool  `json:"need_storage" example:"false"`   // хранение
+	NeedUnloading  bool  `json:"need_unloading" example:"false"` // разгрузочные работы / подъём на этаж
+	Floor          *int  `json:"floor,omitempty" example:"5"`    // этаж доставки (если не указан, используется 1)
+	HasElevator    *bool `json:"has_elevator,omitempty" example:"false"` // наличие лифта (для будущего использования)
 }

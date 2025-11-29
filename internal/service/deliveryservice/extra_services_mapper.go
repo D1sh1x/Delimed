@@ -7,10 +7,11 @@ import (
 
 // Константы кодов услуг СДЭК
 const (
-	CDEKServiceInsuranceCode = "INSURANCE"
-	CDEKServicePackingCode   = "PACKAGE_1" // TODO: уточнить код
-	CDEKServiceDocumentsCode = "DOCUMENTS" // TODO: уточнить код
-	CDEKServiceStorageCode   = "STORAGE"   // TODO: уточнить код
+	CDEKServiceInsuranceCode      = "INSURANCE"
+	CDEKServiceGetUpFloorByHandCode = "GET_UP_FLOOR_BY_HAND" // Подъём на этаж (по лестнице)
+	CDEKServicePackingCode         = "PACKAGE_1"             // TODO: уточнить код
+	CDEKServiceDocumentsCode       = "DOCUMENTS"             // TODO: уточнить код
+	CDEKServiceStorageCode         = "STORAGE"               // TODO: уточнить код
 )
 
 // MapExtraServicesToCDEK - преобразует общие дополнительные услуги в формат СДЭК
@@ -22,6 +23,18 @@ func MapExtraServicesToCDEK(services request.ExtraServices) []request.CDEKServic
 		cdekServices = append(cdekServices, request.CDEKService{
 			Code:      CDEKServiceInsuranceCode,
 			Parameter: strconv.FormatInt(services.InsuranceValue, 10),
+		})
+	}
+
+	// Подъём на этаж (по лестнице)
+	if services.NeedUnloading {
+		floors := 1 // заглушка по умолчанию
+		if services.Floor != nil && *services.Floor > 0 {
+			floors = *services.Floor
+		}
+		cdekServices = append(cdekServices, request.CDEKService{
+			Code:      CDEKServiceGetUpFloorByHandCode,
+			Parameter: strconv.Itoa(floors), // количество этажей
 		})
 	}
 

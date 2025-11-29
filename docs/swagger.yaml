@@ -212,6 +212,14 @@ definitions:
   request.ExtraServices:
     description: Дополнительные услуги для расчета доставки
     properties:
+      floor:
+        description: этаж доставки (если не указан, используется 1)
+        example: 5
+        type: integer
+      has_elevator:
+        description: наличие лифта (для будущего использования)
+        example: false
+        type: boolean
       insurance_value:
         description: объявленная стоимость, 0 если не нужно
         example: 5000
@@ -230,6 +238,10 @@ definitions:
         type: boolean
       need_storage:
         description: хранение
+        example: false
+        type: boolean
+      need_unloading:
+        description: разгрузочные работы / подъём на этаж
         example: false
         type: boolean
     type: object

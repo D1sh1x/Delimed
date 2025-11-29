@@ -96,6 +96,11 @@ func (s *DeliveryService) CalculateDeliveryOptions(ctx context.Context, req requ
 
 	result := FilterOptionsByFromTo(allOptions, from, to)
 
+	// 4. Фильтруем тарифы СДЭК по speed (последняя фильтрация)
+	if req.Speed != "" {
+		result.Options = FilterCDEKBySpeed(result.Options, req.Speed)
+	}
+
 	// Сортируем варианты по цене (по возрастанию) независимо от провайдера
 	sort.Slice(result.Options, func(i, j int) bool {
 		return result.Options[i].Price < result.Options[j].Price
