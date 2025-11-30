@@ -1,0 +1,651 @@
+definitions:
+  domain.DeliveryOption:
+    description: Вариант доставки от провайдера (СДЭК или Деловые Линии)
+    properties:
+      currency:
+        description: '"RUB"'
+        example: RUB
+        type: string
+      delivery_type:
+        allOf:
+        - $ref: '#/definitions/domain.DeliveryType'
+        description: pickup / door
+        example: door
+      eta_from:
+        description: дата "от"
+        example: "2024-01-20T00:00:00Z"
+        type: string
+      eta_to:
+        description: дата "до"
+        example: "2024-01-22T00:00:00Z"
+        type: string
+      name:
+        description: человекочитаемое имя тарифа
+        example: Экспресс-лайт
+        type: string
+      price:
+        description: итоговая цена (минимальные единицы, копейки)
+        example: 150000
+        type: integer
+      provider:
+        description: '"cdek" / "dellin"'
+        example: cdek
+        type: string
+      tariff_code:
+        description: код тарифа провайдера
+        example: "139"
+        type: string
+    type: object
+  domain.DeliveryType:
+    enum:
+    - pickup
+    - door
+    type: string
+    x-enum-comments:
+      DeliveryTypeDoor: до двери
+      DeliveryTypePickup: самовывоз
+    x-enum-varnames:
+    - DeliveryTypePickup
+    - DeliveryTypeDoor
+  domain.FilterResult:
+    description: Результат расчета вариантов доставки с фильтрацией по типу
+    properties:
+      options:
+        description: отфильтрованные или fallback
+        items:
+          $ref: '#/definitions/domain.DeliveryOption'
+        type: array
+      status:
+        description: '"ok" или "error"'
+        example: ok
+        type: string
+    type: object
+  request.CDEKRequest:
+    properties:
+      from_address:
+        description: Адрес отправления
+        example: Москва
+        type: string
+      height:
+        description: Высота в см
+        example: 15
+        type: integer
+      length:
+        description: Длина в см
+        example: 30
+        type: integer
+      tariff_code:
+        description: Код тарифа СДЭК
+        example: 139
+        type: integer
+      to_address:
+        description: Адрес доставки
+        example: Санкт-Петербург
+        type: string
+      weight:
+        description: Вес в граммах
+        example: 2500
+        type: integer
+      width:
+        description: Ширина в см
+        example: 20
+        type: integer
+    required:
+    - from_address
+    - height
+    - length
+    - tariff_code
+    - to_address
+    - weight
+    - width
+    type: object
+  request.CDEKRequestList:
+    properties:
+      from_address:
+        description: Адрес отправления
+        example: Москва
+        type: string
+      height:
+        description: Высота в см
+        example: 15
+        type: integer
+      length:
+        description: Длина в см
+        example: 30
+        type: integer
+      to_address:
+        description: Адрес доставки
+        example: Санкт-Петербург
+        type: string
+      weight:
+        description: Вес в граммах
+        example: 2500
+        type: integer
+      width:
+        description: Ширина в см
+        example: 20
+        type: integer
+    required:
+    - from_address
+    - height
+    - length
+    - to_address
+    - weight
+    - width
+    type: object
+  request.DeliveryCalcRequest:
+    description: Единый запрос для расчета вариантов доставки от всех провайдеров
+    properties:
+      delivery_type:
+        description: |-
+          Тип доставки: самовывоз / дверь
+          pickup — самовывоз из ПВЗ/терминала
+          door   — доставка до двери
+        example: door
+        type: string
+      extra_services:
+        allOf:
+        - $ref: '#/definitions/request.ExtraServices'
+        description: Доп услуги
+      from_address:
+        description: Адреса
+        example: Москва, ул. Ленина, д. 1
+        type: string
+      height_cm:
+        description: Высота в см
+        example: 15
+        type: integer
+      length_cm:
+        description: Габариты
+        example: 30
+        type: integer
+      shipment_date:
+        description: Дата отгрузки (если нет — можно подставлять today / today+1 на
+          бэкенде)
+        example: "2024-01-15"
+        type: string
+      speed:
+        description: |-
+          Тариф по скорости (сейчас нужна только фильтрация по типу доставки,
+          но speed лучше сразу оставить в модели на будущее)
+        example: economy
+        type: string
+      to_address:
+        description: Адрес доставки
+        example: Санкт-Петербург, Невский пр., д. 1
+        type: string
+      weight_kg:
+        description: Вес
+        example: 2.5
+        type: number
+      width_cm:
+        description: Ширина в см
+        example: 20
+        type: integer
+    required:
+    - delivery_type
+    - from_address
+    - height_cm
+    - length_cm
+    - to_address
+    - weight_kg
+    - width_cm
+    type: object
+  request.ExtraServices:
+    description: Дополнительные услуги для расчета доставки
+    properties:
+      floor:
+        description: этаж доставки (если не указан, используется 1)
+        example: 5
+        type: integer
+      has_elevator:
+        description: наличие лифта (для будущего использования)
+        example: false
+        type: boolean
+      insurance_value:
+        description: объявленная стоимость, 0 если не нужно
+        example: 5000
+        type: integer
+      need_courier:
+        description: курьеры/адресная доставка/грузчики
+        example: false
+        type: boolean
+      need_documents:
+        description: работа с документами
+        example: false
+        type: boolean
+      need_packing:
+        description: упаковка
+        example: false
+        type: boolean
+      need_storage:
+        description: хранение
+        example: false
+        type: boolean
+      need_unloading:
+        description: разгрузочные работы / подъём на этаж
+        example: false
+        type: boolean
+    type: object
+  request.SignInInput:
+    properties:
+      password:
+        description: Пароль
+        example: password123
+        type: string
+      username:
+        description: Имя пользователя
+        example: user123
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  request.SignUpInput:
+    properties:
+      password:
+        description: Пароль (минимум 8 символов)
+        example: password123
+        minLength: 8
+        type: string
+      passwordConfirm:
+        description: Подтверждение пароля
+        example: password123
+        type: string
+      username:
+        description: Имя пользователя
+        example: user123
+        type: string
+    required:
+    - password
+    - passwordConfirm
+    - username
+    type: object
+  response.CDEKDeliveryDateRange:
+    properties:
+      max:
+        description: '"2022-02-04"'
+        type: string
+      min:
+        description: '"2022-02-02"'
+        type: string
+    type: object
+  response.CDEKErrorMessage:
+    properties:
+      additional_code:
+        type: string
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  response.CDEKServicePrice:
+    properties:
+      code:
+        type: string
+      discount_percent:
+        type: number
+      discount_sum:
+        type: number
+      sum:
+        type: number
+      total_sum:
+        type: number
+      vat_rate:
+        type: number
+      vat_sum:
+        type: number
+    type: object
+  response.CDEKTariffCalcResponse:
+    properties:
+      calendar_max:
+        type: integer
+      calendar_min:
+        type: integer
+      currency:
+        type: string
+      delivery_date_range:
+        $ref: '#/definitions/response.CDEKDeliveryDateRange'
+      delivery_sum:
+        type: number
+      errors:
+        items:
+          $ref: '#/definitions/response.CDEKErrorMessage'
+        type: array
+      period_max:
+        type: integer
+      period_min:
+        type: integer
+      services:
+        items:
+          $ref: '#/definitions/response.CDEKServicePrice'
+        type: array
+      total_sum:
+        type: number
+      warnings:
+        items:
+          $ref: '#/definitions/response.CDEKWarningMessage'
+        type: array
+      weight_calc:
+        type: integer
+    type: object
+  response.CDEKTariffListItem:
+    properties:
+      calendar_max:
+        type: integer
+      calendar_min:
+        type: integer
+      delivery_date_range:
+        $ref: '#/definitions/response.CDEKDeliveryDateRange'
+      delivery_mode:
+        type: integer
+      delivery_sum:
+        type: number
+      period_max:
+        type: integer
+      period_min:
+        type: integer
+      tariff_code:
+        type: integer
+      tariff_description:
+        type: string
+      tariff_name:
+        type: string
+    type: object
+  response.CDEKTariffListResponse:
+    properties:
+      errors:
+        items:
+          $ref: '#/definitions/response.CDEKErrorMessage'
+        type: array
+      tariff_codes:
+        items:
+          $ref: '#/definitions/response.CDEKTariffListItem'
+        type: array
+      warnings:
+        items:
+          $ref: '#/definitions/response.CDEKWarningMessage'
+        type: array
+    type: object
+  response.CDEKWarningMessage:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  response.UserResponse:
+    properties:
+      created_at:
+        description: Дата создания
+        example: "2024-01-15T10:00:00Z"
+        type: string
+      id:
+        description: UUID пользователя
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      role:
+        description: Роль пользователя
+        example: user
+        type: string
+      updated_at:
+        description: Дата обновления
+        example: "2024-01-15T10:00:00Z"
+        type: string
+      username:
+        description: Имя пользователя
+        example: user123
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/user:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет учетную запись текущего аутентифицированного пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Пользователь успешно удален
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Пользователь не аутентифицирован
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Пользователь не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Удалить профиль пользователя
+      tags:
+      - user
+    get:
+      consumes:
+      - application/json
+      description: Возвращает информацию о текущем аутентифицированном пользователе
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Профиль пользователя
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "401":
+          description: Пользователь не аутентифицирован
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Пользователь не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получить профиль пользователя
+      tags:
+      - user
+  /delivery/calculate:
+    post:
+      consumes:
+      - application/json
+      description: Возвращает варианты доставки от всех провайдеров (СДЭК, Деловые
+        Линии) с фильтрацией по типу доставки
+      parameters:
+      - description: Параметры для расчета доставки
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeliveryCalcRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Варианты доставки
+          schema:
+            $ref: '#/definitions/domain.FilterResult'
+        "400":
+          description: Неверный формат входных данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Расчет вариантов доставки
+      tags:
+      - delivery
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Аутентификация пользователя и получение JWT токена
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SignInInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Токен доступа
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Неверный формат входных данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Неверные учетные данные
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Вход пользователя
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Создает новую учетную запись пользователя
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SignUpInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Регистрация успешна
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Неверный формат входных данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Пользователь уже существует
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Регистрация нового пользователя
+      tags:
+      - auth
+  /tariffs:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает детальный расчет стоимости доставки по конкретному тарифу
+        СДЭК
+      parameters:
+      - description: Параметры для расчета тарифа
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CDEKRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Расчет тарифа
+          schema:
+            $ref: '#/definitions/response.CDEKTariffCalcResponse'
+        "400":
+          description: Неверный формат входных данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить расчет тарифа СДЭК
+      tags:
+      - delivery
+  /tariffslist:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список доступных тарифов СДЭК для указанных параметров
+        доставки
+      parameters:
+      - description: Параметры для расчета тарифов
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CDEKRequestList'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список тарифов
+          schema:
+            $ref: '#/definitions/response.CDEKTariffListResponse'
+        "400":
+          description: Неверный формат входных данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить список тарифов СДЭК
+      tags:
+      - delivery
+swagger: "2.0"
